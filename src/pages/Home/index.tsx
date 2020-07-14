@@ -30,7 +30,13 @@ function Home({}: HomeProps) {
   useEffect(() => {
     if (restaurant) {
       const restaurantService = new RestaurantService(restaurant.ref)
-      restaurantService.onUnfinishedOrders(setOrders)
+      restaurantService.onUnfinishedOrders(orders => {
+        setOrders(
+          orders
+            .slice()
+            .sort((o1, o2) => (o1.data.status === 'preparing' ? -1 : 1))
+        )
+      })
     }
   }, [restaurant])
 

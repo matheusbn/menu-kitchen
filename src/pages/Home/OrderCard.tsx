@@ -10,8 +10,14 @@ interface OrderCardProps {
 }
 
 const useStyles = makeStyles(theme => ({
-  root: {
-    width: '100%',
+  root: {},
+  cardHeading: {
+    ...theme.flex.center,
+    borderBottom: '1px solid #ccc',
+    justifyContent: 'space-between',
+    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
+  },
+  cardBody: {
     padding: theme.spacing(1),
   },
   itemOrder: {
@@ -34,44 +40,64 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
     marginTop: theme.spacing(2),
   },
+  preparingBadge: {
+    ...theme.typography.button,
+    fontWeight: theme.typography.fontWeightBold,
+    fontSize: '.75rem',
+    color: 'white',
+    padding: '2px 8px',
+    backgroundColor: '#7FB069',
+    borderRadius: 10,
+  },
 }))
 
 function OrderCard({ order }: OrderCardProps) {
-  const classes = useStyles()
-  const restaurant = useSelector(state => state.restaurant)
+  const classes = useStyles({ preparing: order.status === 'preparing' })
   console.log(order)
 
   // TODO: add table number, name
   // TODO: add order number
   return (
     <Paper elevation={4} className={classes.root}>
-      {order.items.map((itemOrder, i) => (
-        <div className={classes.itemOrder} key={i + itemOrder.item.id}>
-          <Typography variant="body1" gutterBottom>
-            {itemOrder.amount}x {itemOrder.item.name}
-          </Typography>
+      <div className={classes.cardHeading}>
+        <Typography variant="h6">{order.fromTable || 'Mesa xx'}</Typography>
+        {order.status === 'preparing' ? (
+          <div className={classes.preparingBadge}>Em preparo</div>
+        ) : null}
+      </div>
 
-          <div className={classes.selectedOptionals}>
-            {Object.entries(itemOrder.selectedOptionals).map(
-              ([optional, option]) => (
-                <div key={optional} className={classes.optional}>
-                  <Typography className={classes.optionalName} variant="body2">
-                    {optional}
-                  </Typography>
+      <div className={classes.cardBody}>
+        {order.items.map((itemOrder, i) => (
+          <div className={classes.itemOrder} key={i + itemOrder.item.id}>
+            <Typography variant="body1" gutterBottom>
+              {itemOrder.amount}x {itemOrder.item.name}
+            </Typography>
 
-                  {(Array.isArray(option) ? option : [option]).map(option => (
-                    <Typography variant="body2" key={option.name}>
-                      - {option.name}
+            <div className={classes.selectedOptionals}>
+              {Object.entries(itemOrder.selectedOptionals).map(
+                ([optional, option]) => (
+                  <div key={optional} className={classes.optional}>
+                    <Typography
+                      className={classes.optionalName}
+                      variant="body2"
+                    >
+                      {optional}
                     </Typography>
-                  ))}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-      ))}
 
-      <SlideConfirm onChange={console.log} className={classes.statusInput} />
+                    {(Array.isArray(option) ? option : [option]).map(option => (
+                      <Typography variant="body2" key={option.name}>
+                        - {option.name}
+                      </Typography>
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        ))}
+
+        <SlideConfirm onChange={console.log} className={classes.statusInput} />
+      </div>
     </Paper>
   )
 }
