@@ -30,13 +30,23 @@ function Home({}: HomeProps) {
   useEffect(() => {
     if (restaurant) {
       const restaurantService = new RestaurantService(restaurant.ref)
-      restaurantService.onUnfinishedOrders(orders => {
-        setOrders(
-          orders
-            .slice()
-            .sort((o1, o2) => (o1.data.status === 'preparing' ? -1 : 1))
-        )
+      const unsubscribe = restaurantService.onUnfinishedOrders(orders => {
+        const sorted = orders
+          .slice()
+          .sort((o1, o2) =>
+            o1.data.orderedAt.seconds > o2.data.orderedAt.seconds ? -1 : 1
+          )
+          .sort((o1, o2) => {
+            if (o1.data.status !== o2.data.status)
+              return o1.data.status === 'preparing' ? -1 : 1
+
+            return -1
+          })
+
+        setOrders(sorted)
       })
+
+      return () => unsubscribe()
     }
   }, [restaurant])
 
@@ -52,7 +62,7 @@ function Home({}: HomeProps) {
 
       <div className={classes.orderList}>
         {orders.map(order => (
-          <OrderCard key={order.ref.id} order={order.data} />
+          <OrderCard key={order.ref.id} order={order} />
         ))}
       </div>
     </section>

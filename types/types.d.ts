@@ -16,12 +16,13 @@ interface Restaurant {
   }
 }
 
+type orderStatus = 'open' | 'preparing' | 'done'
 interface OrderData {
   items: ItemOrder[]
-  status?: 'open' | 'preparing' | 'done'
+  status: orderStatus
   fromTable?: string
   sessionId?: string
-  orderedAt?: Date
+  orderedAt?: firebase.firestore.Timestamp
 }
 
 interface Session {

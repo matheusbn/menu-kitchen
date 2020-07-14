@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import { Paper, Typography, Slider } from '@material-ui/core'
+import { CircularProgress, Paper, Typography, Slider } from '@material-ui/core'
 import { makeStyles, withStyles } from '@material-ui/core/styles'
 import SlideConfirm from '../../components/SlideConfirm'
-import RestaurantService from '../../services/restaurant'
+import OrderService from '../../services/order'
 
 interface OrderCardProps {
-  order: OrderData
+  order: Order
 }
 
 const useStyles = makeStyles(theme => ({
@@ -36,9 +35,19 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.text.secondary,
     fontSize: '1rem',
   },
-  statusInput: {
-    margin: theme.spacing(1),
-    marginTop: theme.spacing(2),
+  statusSlider: {
+    transition: 'filter .15s',
+    filter: props => props.loadingStatus && 'blur(4px)',
+  },
+  statusSliderContainer: {
+    padding: theme.spacing(1),
+    paddingTop: theme.spacing(2),
+
+    '& .status-loader': {
+      position: 'absolute',
+      left: '48%',
+      display: props => (props.loadingStatus ? 'block' : 'none'),
+    },
   },
   preparingBadge: {
     ...theme.typography.button,
@@ -52,22 +61,43 @@ const useStyles = makeStyles(theme => ({
 }))
 
 function OrderCard({ order }: OrderCardProps) {
-  const classes = useStyles({ preparing: order.status === 'preparing' })
-  console.log(order)
+  const [loadingStatus, setLoadingStatus] = useState(false)
+  const classes = useStyles({ loadingStatus })
+
+  const handleStatusSlider = async confirmed => {
+    if (!confirmed) return
+
+    setLoadingStatus(true)
+
+    const orderService = new OrderService(order.ref)
+    await orderService.advanceStatus(order.data.status)
+    setLoadingStatus(false)
+  }
 
   // TODO: add table number, name
   // TODO: add order number
   return (
     <Paper elevation={4} className={classes.root}>
       <div className={classes.cardHeading}>
-        <Typography variant="h6">{order.fromTable || 'Mesa xx'}</Typography>
-        {order.status === 'preparing' ? (
+        <div>
+          <Typography variant="h6">
+            {order.data.fromTable || 'Mesa xx'}
+          </Typography>
+          <Typography variant="caption">
+            Feito em{' '}
+            {order.data.orderedAt?.toDate().toLocaleTimeString('pt-BR', {
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+          </Typography>
+        </div>
+        {order.data.status === 'preparing' ? (
           <div className={classes.preparingBadge}>Em preparo</div>
         ) : null}
       </div>
 
       <div className={classes.cardBody}>
-        {order.items.map((itemOrder, i) => (
+        {order.data.items.map((itemOrder, i) => (
           <div className={classes.itemOrder} key={i + itemOrder.item.id}>
             <Typography variant="body1" gutterBottom>
               {itemOrder.amount}x {itemOrder.item.name}
@@ -96,7 +126,13 @@ function OrderCard({ order }: OrderCardProps) {
           </div>
         ))}
 
-        <SlideConfirm onChange={console.log} className={classes.statusInput} />
+        <div className={classes.statusSliderContainer}>
+          <CircularProgress size={20} className="status-loader" />
+          <SlideConfirm
+            onChange={handleStatusSlider}
+            className={classes.statusSlider}
+          />
+        </div>
       </div>
     </Paper>
   )

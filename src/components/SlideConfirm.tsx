@@ -30,30 +30,29 @@ const useStyles = makeStyles(theme => {
 
   return {
     root: {
+      userSelect: 'none',
       color: '#ccc',
-      '&:hover': {
-        color: theme.palette.primary.main,
-      },
-      transition: 'all .2s',
       '& label': {
         fontSize: '.9rem',
         color: '#bbb',
       },
-    },
-    track: {
-      height: HEIGHT,
 
-      display: 'block',
-      width: '100%',
-      border: '1px solid currentColor',
-      boxShadow: 'inset 0 0 1.4px .1px currentColor',
-      backgroundColor: 'transparent',
-      borderRadius: 30,
-      ...theme.flex.center,
+      '& .slider-confirm__track': {
+        height: HEIGHT,
+        transition: 'all .3s',
 
-      // firefox only
-      '@supports (-moz-appearance:none)': {
-        marginTop: -HEIGHT,
+        display: 'block',
+        width: '100%',
+        border: '1px solid currentColor',
+        boxShadow: 'inset 0 0 1.4px .1px currentColor',
+        backgroundColor: 'transparent',
+        borderRadius: 30,
+        ...theme.flex.center,
+
+        // firefox only
+        '@supports (-moz-appearance:none)': {
+          marginTop: -HEIGHT,
+        },
       },
     },
     input: {
@@ -67,6 +66,10 @@ const useStyles = makeStyles(theme => {
       outline: 'none',
       '&:focus': {
         outline: 'none',
+      },
+
+      '&:focus + .slider-confirm__track': {
+        color: theme.palette.primary.main,
       },
 
       '&::-webkit-slider-thumb': styles.thumb,
@@ -116,9 +119,11 @@ export default function SlideConfirm({
         ref={ref}
         max={maxValue}
         onMouseUp={handleMouseUp}
+        onTouchStart={() => null}
+        onTouchEnd={handleMouseUp}
         className={classes.input}
       />
-      <div className={classes.track}>
+      <div className="slider-confirm__track">
         <label htmlFor="range-slider-input">
           Arraste para avançar o pedido
         </label>
